@@ -1,57 +1,31 @@
-name: CI
+名称： Android CI
 
-on:
-  push:
-    tags:
-    - '*'
-  workflow_dispatch:
+在：
+  推：
+    分支：[ Main ]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+工作：
+  建造：
+    运行： ubuntu-latest
+    env ：
+      keystore_password ： $ { { necrets.keystore_password } }
+      KEY_ALIAS ： $ { { necrets.key_alias } }
+      key_password ： $ { { necrets.key_password } }
+      keystore_path ： app/signingKey.jks
 
-      - name: Prepare signing key
-        run: echo '${{ secrets.SIGNING_KEY }}' | base64 -d > signingkey.jks
+    步骤：
+      -用途：操作/结帐@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'adopt'
+      -用途： Actions/setup-java@v3
+        和：
+          Java-version ：'11'
+          发行：“ temurin”
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-  
-      - name: Build release binary with Gradle
-        uses: gradle/gradle-command-action@v2
-        env:
-          ALIAS: ${{ secrets.ALIAS }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        with:
-          arguments: assembleRelease
+      -名称：解码密钥库
+        运行：|
+          echo“ $ {{secrets.keystore_base64}}” | base64 -di> $ keystore_path
+          LS -LA应用程序/＃确认文件存在
 
-      - name: Clean up
-        run: |
-          rm signingkey.jks
-          rm -f ${{github.workspace}}/app/build/outputs/apk/release/app-release-unsigned.apk
-
-      - name: Upload to GitHub release
-        uses: ncipollo/release-action@v1
-        with:
-          # allowUpdates: true
-          artifacts: "${{github.workspace}}/app/build/outputs/apk/release/*.apk"
-      
-      # Upload to COS
-      - name: Upload to COS
-        uses: git9527/setup-coscli@v2
-        with:
-          region: ${{ secrets.COS_REGION }}
-          secret-id: ${{ secrets.COS_SECRET_ID }}
-          secret-key: ${{ secrets.COS_SECRET_KEY }}
-          bucket: ${{ secrets.COS_BUCKET }}
-          coscli-version: 'v0.12.0-beta' # Optional, default to 'v0.12.0-beta'.  Use 'latest' to get the latest version.
-      - run: |
-          coscli sync ${{github.workspace}}/app/build/outputs/apk/release cos://${{ secrets.COS_BUCKET }} --recursive --thread-num 20
+      -名称：构建版本
+        运行：|
+          ./gradlew Clean Chanderleelease-no-daemon-Rerun任务
