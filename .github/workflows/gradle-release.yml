@@ -1,31 +1,31 @@
-名称： Android CI
+name: Android CI
 
-在：
-  推：
-    分支：[ Main ]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-工作：
-  建造：
-    运行： ubuntu-latest
-    env ：
-      keystore_password ： $ { { necrets.keystore_password } }
-      KEY_ALIAS ： $ { { necrets.key_alias } }
-      key_password ： $ { { necrets.key_password } }
-      keystore_path ： app/signingKey.jks
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    步骤：
-      -用途：操作/结帐@v4
+    env:
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      -用途： Actions/setup-java@v3
-        和：
-          Java-version ：'11'
-          发行：“ temurin”
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      -名称：解码密钥库
-        运行：|
-          echo“ $ {{secrets.keystore_base64}}” | base64 -di> $ keystore_path
-          LS -LA应用程序/＃确认文件存在
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
 
-      -名称：构建版本
-        运行：|
-          ./gradlew Clean Chanderleelease-no-daemon-Rerun任务
+      - name: Build with Gradle
+        run: ./gradlew build
